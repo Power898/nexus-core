@@ -16,9 +16,10 @@ class Settings:
     ENVIRONMENT: str = os.getenv("ENVIRONMENT", "development")
     DEBUG: bool = os.getenv("DEBUG", "False").lower() in ("true", "1", "t")
     
-    TELEGRAM_BOT_TOKEN: str = os.getenv("TELEGRAM_BOT_TOKEN", "")
+    BOT_TOKEN: str = os.getenv("BOT_TOKEN", os.getenv("TELEGRAM_BOT_TOKEN", ""))
     SECRET_KEY: str = os.getenv("SECRET_KEY", "default-dev-key")
-    
+    DB_URL: str = os.getenv("DB_URL", "sqlite:///./data/nexus.db")
+
     # Шляхи до системних каталогів
     LOGS_DIR: Path = BASE_DIR / "logs"
     DATA_DIR: Path = BASE_DIR / "data"
@@ -26,8 +27,8 @@ class Settings:
     @classmethod
     def validate(cls) -> None:
         """Перевірка наявності критичних змінних."""
-        if cls.ENVIRONMENT == "production" and not cls.TELEGRAM_BOT_TOKEN:
-            raise ValueError("TELEGRAM_BOT_TOKEN обов'язковий для production середовища!")
+        if cls.ENVIRONMENT == "production" and not cls.BOT_TOKEN:
+            raise ValueError("BOT_TOKEN обов'язковий для production середовища!")
 
 
 settings = Settings()
