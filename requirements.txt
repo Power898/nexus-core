@@ -1,0 +1,17 @@
+# Configuration & Environment
+python-dotenv
+
+# Transport & Bot API
+python-telegram-bot
+
+# System Monitoring & Metrics
+psutil
+prometheus-client
+
+# Data Processing & Reporting
+pandas
+openpyxl
+
+# Testing & Quality Assurance
+pytest
+flake8
