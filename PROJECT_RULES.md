@@ -15,12 +15,12 @@
 - **Code Quality & Security Gates:** `pre-commit`, `gitleaks` (secrets scanning), `ruff` (linter/formatter), GPG commit signing
 
 ## 3. STRICT ARCHITECTURAL & SECURITY RULES
-1. **Zero Raw SQL (SQLi Prevention):** 
-   - Всі запити до реляційної БД виконуються ВИКЛЮЧНО через SQLAlchemy 2.0 ORM / Expression Language. 
+1. **Zero Raw SQL (SQLi Prevention):**
+   - Всі запити до реляційної БД виконуються ВИКЛЮЧНО через SQLAlchemy 2.0 ORM / Expression Language.
    - Сирі SQL-строки (`execute("SELECT...")`) суворо заборонені.
 
 2. **Data Integrity & Soft Delete:**
-   - Сутності в БД не видаляються фізично без крайньої потреби. 
+   - Сутності в БД не видаляються фізично без крайньої потреби.
    - Використовувати прапорець `is_active = Column(Boolean, default=True)` (Soft Delete).
 
 3. **Memory & Context Protection (RAG Safety):**
