@@ -1,20 +1,23 @@
 import os
+from typing import AsyncGenerator
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 from sqlalchemy.orm import DeclarativeBase
 from config.settings import settings
 from core.logger import logger
 
-# Конвертуємо URL бази даних для асинхронного драйвера aiosqlite, якщо це sqlite
-db_url = settings.DB_URL
-if "./data/" in db_url or "/data/" in db_url:
+# Гарантуємо існування директорії для бази даних
+if hasattr(settings, "DATA_DIR") and settings.DATA_DIR:
     os.makedirs(settings.DATA_DIR, exist_ok=True)
-if db_url.startswith("sqlite:///"):
+
+# Конвертуємо URL бази даних для асинхронного драйвера aiosqlite
+db_url = settings.DB_URL
+if db_url.startswith("sqlite:///") and not db_url.startswith("sqlite+aiosqlite:///"):
     db_url = db_url.replace("sqlite:///", "sqlite+aiosqlite:///")
 
 # Створюємо асинхронний рушій бази даних
 engine = create_async_engine(
     db_url,
-    echo=False,  # Встановіть True, якщо потрібен детальний SQL-лог у консолі
+    echo=False,  # Встановіть True, якщо потрібен детальний SQL-лог для відлагодження
     future=True
 )
 
@@ -25,7 +28,7 @@ AsyncSessionLocal = async_sessionmaker(
     expire_on_commit=False
 )
 
-# Базовий клас для всіх моделей БД
+# Базовий клас для всіх ORM-моделей БД
 class Base(DeclarativeBase):
     pass
 
@@ -38,4 +41,17 @@ async def init_db() -> None:
     except Exception as e:
         logger.error(f"Помилка при ініціалізації бази даних: {e}")
         raise e
+
+# Асинхронний генератор сесій із автоматичним закриттям та rollback при помилках
+async def get_db() -> AsyncGenerator[AsyncSession, None]:
+    async with AsyncSessionLocal() as session:
+        try:
+            yield session
+        except Exception as e:
+            await session.rollback()
+            logger.error(f"Транзакцію скасовано через помилку: {e}")
+            raise e
+        finally:
+            await session.close()
+            
     
