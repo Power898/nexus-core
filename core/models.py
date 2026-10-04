@@ -1,7 +1,18 @@
+from collections.abc import Sequence
 from datetime import datetime
-from typing import Any, Generic, Sequence, TypeVar
+from typing import Any, Generic, TypeVar
 
-from sqlalchemy import BigInteger, Boolean, DateTime, ForeignKey, Select, String, Text, func, select
+from sqlalchemy import (
+    BigInteger,
+    Boolean,
+    DateTime,
+    ForeignKey,
+    Select,
+    String,
+    Text,
+    func,
+    select,
+)
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
