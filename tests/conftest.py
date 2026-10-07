@@ -65,4 +65,31 @@ async def sample_user(db_session: AsyncSession) -> User:
     return user
 
 
-@pytest_asyncio
+@pytest_asyncio.fixture(scope="function")
+async def admin_user(db_session: AsyncSession) -> User:
+    """Фікстура для створення користувача з роллю адміністратора."""
+    user = User(
+        telegram_id=987654321,
+        username="admin_user",
+        first_name="Admin",
+        last_name="User",
+        role="admin",
+    )
+    db_session.add(user)
+    await db_session.commit()
+    await db_session.refresh(user)
+    return user
+
+
+@pytest_asyncio.fixture(scope="function")
+async def sample_question(db_session: AsyncSession) -> QuizQuestion:
+    """Фікстура для створення тестового запитання вікторини."""
+    question = QuizQuestion(
+        question_text="Яка столиця України?",
+        options=["Львів", "Київ", "Одеса", "Харків"],
+        correct_answer="Київ",
+    )
+    db_session.add(question)
+    await db_session.commit()
+    await db_session.refresh(question)
+    return question
