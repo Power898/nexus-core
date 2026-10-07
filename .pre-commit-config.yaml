@@ -21,3 +21,13 @@ repos:
     rev: v8.30.0
     hooks:
       - id: gitleaks
+
+  # 4. Автоматичний прогон швидких unit-тестів (Quality Gate)
+  - repo: local
+    hooks:
+      - id: pytest-fast
+        name: pytest (fast unit tests)
+        entry: pytest -m "not slow"
+        language: system
+        pass_filenames: false
+        always_run: true

@@ -1,6 +1,6 @@
 from collections.abc import Sequence
-from datetime import datetime
-from typing import Any, Generic, TypeVar
+from datetime import datetime, timezone
+from typing import Any, ClassVar, Generic, TypeVar
 
 from sqlalchemy import (
     BigInteger,
@@ -56,10 +56,18 @@ class SoftDeleteMixin:
     """Міксин для реалізації soft delete та кастомного менеджера об'єктів."""
 
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    deleted_at: Mapped[datetime | None] = mapped_column(
+        DateTime, nullable=True, default=None
+    )
+
+    def soft_delete(self) -> None:
+        """Soft delete: позначає сутність як неактивну та фіксує час видалення."""
+        self.is_active = False
+        self.deleted_at = datetime.now(timezone.utc)
 
     def delete(self) -> None:
-        """Soft delete: позначає сутність як неактивну замість фізичного видалення."""
-        self.is_active = False
+        """Аліас для soft_delete."""
+        self.soft_delete()
 
     async def hard_delete(self, session: AsyncSession) -> None:
         """Фізичне видалення запису з бази даних."""
@@ -96,7 +104,7 @@ class User(Base, SoftDeleteMixin):
         "Result", back_populates="user", cascade="all, delete-orphan"
     )
 
-    objects: ObjectsManager["User"]
+    objects: ClassVar[ObjectsManager["User"]]
 
     def __repr__(self) -> str:
         return f"<User(telegram_id={self.telegram_id}, role='{self.role}', active={self.is_active})>"
@@ -120,7 +128,7 @@ class QuizQuestion(Base, SoftDeleteMixin):
         DateTime, server_default=func.now(), nullable=False
     )
 
-    objects: ObjectsManager["QuizQuestion"]
+    objects: ClassVar[ObjectsManager["QuizQuestion"]]
 
     def __repr__(self) -> str:
         return f"<QuizQuestion(id={self.id}, topic='{self.topic}', active={self.is_active})>"
@@ -145,7 +153,7 @@ class Result(Base, SoftDeleteMixin):
     # Зв'язок із користувачем
     user: Mapped["User"] = relationship("User", back_populates="results")
 
-    objects: ObjectsManager["Result"]
+    objects: ClassVar[ObjectsManager["Result"]]
 
     def __repr__(self) -> str:
         return f"<Result(user_id={self.user_id}, topic='{self.topic}', score={self.score})>"

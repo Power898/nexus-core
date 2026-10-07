@@ -21,3 +21,7 @@ __pycache__/
 # IDE settings
 .vscode/
 .idea/
+
+.venv*
+venv*/
+.aider*
