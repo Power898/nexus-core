@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_asyn
 
 # Перевірте шлях до Base у вашому проєкті (наприклад, core.database або core.models)
 from core.database import Base
+from core.models import QuizQuestion, User
 
 TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
 
@@ -46,3 +47,22 @@ async def db_session(async_engine) -> AsyncSession:
     async with async_session_factory() as session:
         yield session
         await session.rollback()
+
+
+@pytest_asyncio.fixture(scope="function")
+async def sample_user(db_session: AsyncSession) -> User:
+    """Фікстура для створення звичайного користувача."""
+    user = User(
+        telegram_id=123456789,
+        username="test_user",
+        first_name="Test",
+        last_name="User",
+        role="user",
+    )
+    db_session.add(user)
+    await db_session.commit()
+    await db_session.refresh(user)
+    return user
+
+
+@pytest_asyncio
