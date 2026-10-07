@@ -1,62 +1,50 @@
-import asyncio
-
-import pytest
 import pytest_asyncio
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
-# Перевірте шлях до Base у вашому проєкті (наприклад, core.database або core.models)
 from core.database import Base
 from core.models import QuizQuestion, User
 
+# Використовуємо SQLite в пам'яті для асинхронного тестування
 TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
 
 
-@pytest.fixture(scope="session")
-def event_loop():
-    """Окремий event loop для асинхронних тестів."""
-    loop = asyncio.get_event_loop_policy().new_event_loop()
-    yield loop
-    loop.close()
+@pytest_asyncio.fixture(scope="session")
+def engine():
+    """Створює асинхронний движок SQLAlchemy для тестової БД."""
+    return create_async_engine(TEST_DATABASE_URL, echo=False)
 
 
-@pytest_asyncio.fixture(scope="function")
-async def async_engine():
-    """Створює тимчасові таблиці в SQLite memory перед кожним тестом."""
-    engine = create_async_engine(TEST_DATABASE_URL, echo=False)
-
+@pytest_asyncio.fixture(scope="function", autouse=True)
+async def prepare_database(engine):
+    """Створює всі таблиці перед кожним тестом і видаляє їх після завершення."""
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
-
-    yield engine
-
+    yield
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
 
-    await engine.dispose()
 
-
-@pytest_asyncio.fixture(scope="function")
-async def db_session(async_engine) -> AsyncSession:
-    """Фікстура чистої асинхронної сесії для тесту."""
-    async_session_factory = async_sessionmaker(
-        bind=async_engine,
+@pytest_asyncio.fixture
+async def db_session(engine):
+    """Надає асинхронну сесію БД для тестів."""
+    TestingSessionLocal = async_sessionmaker(
+        bind=engine,
         class_=AsyncSession,
         expire_on_commit=False,
     )
-
-    async with async_session_factory() as session:
+    async with TestingSessionLocal() as session:
         yield session
-        await session.rollback()
 
 
-@pytest_asyncio.fixture(scope="function")
-async def sample_user(db_session: AsyncSession) -> User:
+# --- Фікстури даних ---
+
+
+@pytest_asyncio.fixture
+async def sample_user(db_session: AsyncSession):
     """Фікстура для створення звичайного користувача."""
     user = User(
         telegram_id=123456789,
         username="test_user",
-        first_name="Test",
-        last_name="User",
         role="user",
     )
     db_session.add(user)
@@ -65,14 +53,12 @@ async def sample_user(db_session: AsyncSession) -> User:
     return user
 
 
-@pytest_asyncio.fixture(scope="function")
-async def admin_user(db_session: AsyncSession) -> User:
-    """Фікстура для створення користувача з роллю адміністратора."""
+@pytest_asyncio.fixture
+async def admin_user(db_session: AsyncSession):
+    """Фікстура для створення адміністратора."""
     user = User(
         telegram_id=987654321,
         username="admin_user",
-        first_name="Admin",
-        last_name="User",
         role="admin",
     )
     db_session.add(user)
@@ -81,13 +67,14 @@ async def admin_user(db_session: AsyncSession) -> User:
     return user
 
 
-@pytest_asyncio.fixture(scope="function")
-async def sample_question(db_session: AsyncSession) -> QuizQuestion:
-    """Фікстура для створення тестового запитання вікторини."""
+@pytest_asyncio.fixture
+async def sample_question(db_session: AsyncSession):
+    """Фікстура для створення питання вікторини."""
     question = QuizQuestion(
-        question_text="Яка столиця України?",
-        options=["Львів", "Київ", "Одеса", "Харків"],
-        correct_answer="Київ",
+        question_text="Sample Question?",
+        options=["Option A", "Option B", "Option C", "Option D"],
+        correct_option=0,
+        explanation="Test explanation",
     )
     db_session.add(question)
     await db_session.commit()
