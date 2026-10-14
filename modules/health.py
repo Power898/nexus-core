@@ -13,10 +13,15 @@ class HealthChecker:
         memory = psutil.virtual_memory()
         disk = psutil.disk_usage("/")
 
+        cpu_percent = psutil.cpu_percent(interval=None)
         return {
-            "status": "ok",
+            "status": "OK",
             "timestamp": datetime.now(timezone.utc).isoformat(),
-            "cpu_usage_percent": psutil.cpu_percent(interval=None),
+            # Додаємо дублювання ключів для сумісності з різними викликами (напр., тестами)
+            "cpu_usage": cpu_percent,
+            "cpu_usage_percent": cpu_percent,
+            "memory_usage": memory.percent,
+            "disk_usage": disk.percent,
             "ram": {
                 "total_mb": round(memory.total / (1024 * 1024), 2),
                 "used_mb": round(memory.used / (1024 * 1024), 2),
@@ -33,3 +38,8 @@ class HealthChecker:
     async def async_get_status(cls) -> dict:
         """Асинхронна обгортка для уникнення блокування event loop."""
         return await asyncio.to_thread(cls.get_system_status)
+
+    @classmethod
+    async def get_system_health(cls) -> dict:
+        """Аліас для сумісності з обробниками команд та тестами."""
+        return await cls.async_get_status()
