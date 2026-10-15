@@ -31,3 +31,10 @@ repos:
         language: system
         pass_filenames: false
         always_run: true
+
+  # 5. Сканування вразливостей
+  - repo: https://github.com/pypa/pip-audit
+    rev: v2.7.3
+    hooks:
+      - id: pip-audit
+        args: ["-r", "requirements.txt"]

@@ -4,6 +4,7 @@ from aiogram import Router
 from aiogram.filters import Command
 from aiogram.types import Message
 
+from adapters.rbac import require_role
 from modules.health import HealthChecker
 
 # Налаштовуємо логер для цього модуля
@@ -33,6 +34,7 @@ async def cmd_help(message: Message) -> None:
 
 
 @router.message(Command("health"))
+@require_role("tenant_admin")  # Захищаємо команду, вимагаючи привілейовану роль
 async def cmd_health(message: Message) -> None:
     """Обробник команди /health для моніторингу через HealthChecker."""
     try:

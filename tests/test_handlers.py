@@ -1,15 +1,14 @@
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from aiogram.types import Message
 
 from handlers.common import cmd_health, cmd_help, cmd_start
 
 
 @pytest.mark.asyncio
 async def test_cmd_start():
-    message = AsyncMock(spec=Message)
-    message.answer = AsyncMock()  # Робимо метод асинхронним
+    message = MagicMock()
+    message.answer = AsyncMock()
     await cmd_start(message)
     message.answer.assert_awaited_once()
     args, _ = message.answer.call_args
@@ -18,8 +17,8 @@ async def test_cmd_start():
 
 @pytest.mark.asyncio
 async def test_cmd_help():
-    message = AsyncMock(spec=Message)
-    message.answer = AsyncMock()  # Робимо метод асинхронним
+    message = MagicMock()
+    message.answer = AsyncMock()
     await cmd_help(message)
     message.answer.assert_awaited_once()
     args, _ = message.answer.call_args
@@ -28,8 +27,9 @@ async def test_cmd_help():
 
 @pytest.mark.asyncio
 async def test_cmd_health_success():
-    message = AsyncMock(spec=Message)
-    message.answer = AsyncMock()  # Робимо метод асинхронним
+    message = MagicMock()
+    message.from_user.id = 123  # Тепер MagicMock спокійно створить цей атрибут
+    message.answer = AsyncMock()
 
     fake_health = {
         "cpu_usage": 15.0,
@@ -38,12 +38,11 @@ async def test_cmd_health_success():
         "status": "OK",
     }
 
-    # Замініть HealthChecker.get_system_health на реальну назву методу з modules/health.py якщо вона відрізняється
     with patch(
         "handlers.common.HealthChecker.get_system_health",
         new=AsyncMock(return_value=fake_health),
     ):
-        await cmd_health(message)
+        await cmd_health(message, user_role="tenant_admin")
 
     message.answer.assert_awaited_once()
     args, _ = message.answer.call_args

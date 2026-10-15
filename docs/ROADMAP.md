@@ -1,4 +1,6 @@
-NEXUSCORE — FULL ROADMAP & SPRINTS (UPDATED v1.7)
+Ось оновлена версія дорожньої карти NEXUSCORE — FULL ROADMAP & SPRINTS (UPDATED v1.8), куди впроваджено обов'язковий етап Dependency & Vulnerability Scanning (Supply Chain Security) на початку Спринту 2 та закріплено його як базовий Quality Gate для всіх подальших тестів і компонентів.
+
+NEXUSCORE — FULL ROADMAP & SPRINTS (UPDATED v1.8)
 ⚽ Спринт 1: Базовий каркас, Безпека та Context Engineering (Завершено)
 
 [x] Task 1.1: Ініціалізація проєкту, venv, requirements.txt, .gitignore.
@@ -23,7 +25,15 @@ NEXUSCORE — FULL ROADMAP & SPRINTS (UPDATED v1.7)
 
 [x] Task 1.11 (Health Check): Модуль modules/health.py (HealthChecker) — контроль RAM/CPU/Disk через psutil з асинхронною обгорткою asyncio.to_thread.
 
-🤖 Спринт 2: Транспортний адаптер, RBAC та Telegram-бот (Наступний)
+🤖 Спринт 2: Транспортний адаптер, RBAC, Telegram-бот та Security Gate (Поточний)
+
+[ ] Task 2.0 (Supply Chain Security & Vulnerability Check):
+
+Першочерговий аудит і сканування залежностей у requirements.txt на наявність вразливостей (через pip-audit).
+
+Усунення знайдених слабких місць, виправлення версій та інтеграція сканування в базові Quality Gates і pre-commit.
+
+Золоте правило: зупинка розробки та виправлення будь-яких виявлених вразливостей перед переходом до наступних тасків.
 
 [ ] Task 2.1: Модуль adapters/base_adapter.py — абстракція транспортного рівня (Messenger Agnostic).
 
@@ -35,7 +45,7 @@ NEXUSCORE — FULL ROADMAP & SPRINTS (UPDATED v1.7)
 
 [ ] Task 2.5: Реалізація обробників базових команд (/start, /health, /help).
 
-[ ] Task 2.6 (Unit Tests): Написання швидких тестів для перевірки RBAC-декораторів та валідації ролей.
+[ ] Task 2.6 (Unit Tests): Написання швидких тестів для перевірки RBAC-декораторів, валідації ролей та стабільності захисту ланцюжка постачання.
 
 📊 Спринт 3: Контент-менеджмент, Обробка даних та Звітність
 
